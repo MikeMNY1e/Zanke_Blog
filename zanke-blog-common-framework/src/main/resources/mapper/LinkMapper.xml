@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zanke.mapper.LinkMapper">
+
+    <resultMap id="LinkResultMap" type="link">
+        <id column="id" property="id"/>
+    </resultMap>
+
+
+    <select id="selectAllLink" resultMap="LinkResultMap">
+        select
+            *
+        from
+            link
+        where
+            status = 0 and
+            del_flag = 0;
+    </select>
+
+
+    <resultMap id="LinkVoResultMap" type="linkVo">
+        <id column="id" property="id"/>
+    </resultMap>
+
+
+    <select id="selectAllLinkByLinkNameAndStatus" resultMap="LinkVoResultMap">
+        select
+            id,
+            `name`,
+            address,
+            logo,
+            description,
+            status
+        from
+            link
+        where
+            <if test="name != null">
+                name like concat('%',#{name},'%') and
+            </if>
+            <if test="status != null">
+                status = #{status} and
+            </if>
+            del_flag = 0
+    </select>
+
+
+    <insert id="insert">
+        insert into link(name,address,logo,description,status,create_by,create_time)
+        values
+        (#{name},#{address},#{logo},#{description},#{status},#{createBy},#{createTime})
+    </insert>
+
+
+    <select id="selectCategoryById" resultMap="LinkVoResultMap">
+        select
+            id,
+            `name`,
+            address,
+            logo,
+            description,
+            status
+        from
+            link
+        where
+            id = #{id}
+    </select>
+
+
+    <update id="updateLink">
+        update
+            link
+        set
+            `name` = #{name},
+            address = #{address},
+            logo = #{logo},
+            description = #{description},
+            status = #{status},
+            update_by = #{updateBy},
+            update_time = #{updateTime}
+        where
+            id = #{id}
+    </update>
+
+
+    <update id="updateStatus">
+        update
+            link
+        set
+            status = #{status},
+            update_by = #{updateBy},
+            update_time = #{updateTime}
+        where
+            id = #{id}
+    </update>
+
+
+    <update id="deleteLink">
+        update
+            link
+        set
+            del_flag = 1
+        where
+            id = #{id}
+    </update>
+
+</mapper>

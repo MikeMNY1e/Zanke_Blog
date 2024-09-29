@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zanke.mapper.CommentMapper">
+
+    <resultMap id="CommentResultMap" type="comment">
+        <id property="id" column="id"/>
+    </resultMap>
+
+
+    <select id="selectRootCommentListByArticleIdDESCBYCreateTime" resultMap="CommentResultMap">
+        select
+            c.*,
+            u.nick_name as username
+        from
+            comment as c join
+            user as u on
+            c.create_by = u.id
+        where
+            <if test="type == 0">
+                c.article_id = #{articleId} and
+            </if>
+            c.root_id = -1 and
+            c.del_flag = 0 and
+            c.type = #{type}
+        order by
+            c.create_time desc
+    </select>
+
+
+    <select id="selectChildCommentListByRootIdDESCBYCreateTime" resultMap="CommentResultMap">
+        select
+            c.*,
+            u1.nick_name as username,
+            u2.nick_name as to_comment_user_name
+        from
+            comment as c join
+            user as u1 on
+            c.create_by = u1.id
+            join user as u2 on
+            c.to_comment_user_id = u2.id
+        where
+            c.root_id in
+            <foreach collection="rootIds" open="(" separator="," close=")" item="rootId">
+                #{rootId}
+            </foreach>
+            and
+            c.del_flag = 0
+        order by
+            c.create_time desc
+    </select>
+
+
+    <insert id="insertOneComment" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into comment
+        (article_id, content, create_by, create_time, root_id, to_comment_id, to_comment_user_id, type)
+        values
+        (#{articleId}, #{content}, #{createBy}, #{createTime}, #{rootId}, #{toCommentId}, #{toCommentUserId}, #{type})
+    </insert>
+
+
+    <update id="deleteByArticleId">
+        update
+            comment
+        set
+            del_flag = 1
+        where
+            article_id = #{id}
+    </update>
+
+</mapper>

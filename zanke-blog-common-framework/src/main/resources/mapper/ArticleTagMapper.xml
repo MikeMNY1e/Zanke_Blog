@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zanke.mapper.ArticleTagMapper">
+
+    <insert id="insertIntoArticleTag">
+        <foreach collection="tagIdList" item="item">
+            insert into
+            article_tag(article_id, tag_id)
+            values
+            (#{id}, #{item});
+        </foreach>
+    </insert>
+
+
+    <delete id="deleteByArticleId">
+        delete from
+            article_tag
+        where
+            article_id = #{id}
+    </delete>
+
+    <delete id="deleteByTagId">
+        delete from
+            article_tag
+        where
+            tag_id = #{id}
+    </delete>
+
+
+    <select id="selectArticleIdByTagId" resultType="int">
+        select
+            count(*)
+        from
+            article_tag
+        where
+            tag_id = #{id};
+    </select>
+
+</mapper>

@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zanke.mapper.MenuMapper">
+
+    <resultMap id="MenuVoResultMap" type="menuVo">
+        <id property="id" column="id"/>
+    </resultMap>
+
+
+    <select id="selectPermsByUserId" resultType="string">
+        select distinct
+            m.perms
+        from
+            user_role as ur
+            left join role_menu as rm
+            on rm.role_id = ur.role_id
+                and rm.status = 0
+            left join menu as m
+            on m.id = rm.menu_id
+        where
+            ur.user_id = #{id} and
+            ur.status = 0 and
+            m.menu_type IN ('C','F') and
+            m.status = 0 and
+            m.del_flag = 0
+    </select>
+
+
+    <select id="selectAllPerms" resultType="string">
+        select distinct
+            perms
+        from
+            menu
+        where
+            menu_type IN ('C','F') and
+            status = 0 and
+            del_flag = 0
+    </select>
+
+
+    <select id="selectAllRouterMenu" resultMap="MenuVoResultMap">
+        SELECT DISTINCT
+            id,
+            parent_id,
+            menu_name,
+            path,
+            component,
+            visible,
+            status,
+            IFNULL(perms,'') AS perms,
+            menu_type,
+            icon,
+            order_num,
+            create_time
+        FROM
+            menu
+        WHERE
+            menu_type IN ('C','M') and
+            status = 0 and
+            del_flag = 0
+        ORDER BY
+            parent_id,
+            order_num
+    </select>
+
+
+    <select id="selectRouterMenuByUserId" resultMap="MenuVoResultMap">
+        SELECT DISTINCT
+            m.id,
+            m.parent_id,
+            m.menu_name,
+            m.path,
+            m.component,
+            m.visible,
+            m.status,
+            IFNULL(m.perms,'') AS perms,
+            m.menu_type,
+            m.icon,
+            m.order_num,
+            m.create_time
+        FROM
+            user_role as ur
+            LEFT JOIN role_menu as rm
+            ON rm.role_id = ur.role_id
+                and rm.status = 0
+            LEFT JOIN menu as m
+            ON m.id = rm.menu_id
+        WHERE
+            ur.`user_id` = #{id} AND
+            ur.`status` = 0 AND
+            m.`menu_type` IN ('C','M') AND
+            m.`status` = 0 AND
+            m.`del_flag` = 0
+        ORDER BY
+            m.parent_id,
+            m.order_num
+    </select>
+
+
+    <select id="selectAllRouterMenuByMenuNameAndStatus" resultMap="MenuVoResultMap">
+        SELECT DISTINCT
+            id,
+            parent_id,
+            menu_name,
+            path,
+            component,
+            visible,
+            status,
+            IFNULL(perms,'') AS perms,
+            menu_type,
+            icon,
+            order_num,
+            create_time
+        FROM
+            menu
+        WHERE
+            del_flag = 0
+            <if test="menuName != null">
+                and menu_name like concat('%',#{menuName},'%')
+            </if>
+            <if test="status != null">
+                and status = #{status}
+            </if>
+        ORDER BY
+            parent_id,
+            order_num
+    </select>
+
+
+    <insert id="insertIntoMenu">
+        INSERT INTO menu
+            (menu_name,
+            parent_id,
+            order_num,
+            path,
+            component,
+            is_frame,
+            menu_type,
+            visible,
+            status,
+            perms,
+            icon,
+            create_by,
+            create_time,
+            remark)
+        VALUES
+            (#{menuName},
+            #{parentId},
+            #{orderNum},
+            #{path},
+            #{component},
+            #{isFrame},
+            #{menuType},
+            #{visible},
+            #{status},
+            #{perms},
+            #{icon},
+            #{createBy},
+            now(),
+            #{remark})
+    </insert>
+
+
+    <select id="selectMenuById" resultMap="MenuVoResultMap">
+        select
+            icon,
+            id,
+            menu_name,
+            menu_type,
+            order_num,
+            parent_id,
+            path,
+            remark,
+            status,
+            visible,
+            component,
+            perms
+        from
+            menu
+        where
+            id = #{id}
+    </select>
+
+
+    <update id="updateMenu">
+        update menu
+        set
+            menu_name = #{menuName},
+            parent_id = #{parentId},
+            order_num = #{orderNum},
+            path = #{path},
+            component = #{component},
+            menu_type = #{menuType},
+            visible = #{visible},
+            status = #{status},
+            perms = #{perms},
+            icon = #{icon},
+            update_by = #{updateBy},
+            update_time = now(),
+            remark = #{remark}
+        where
+            id = #{id}
+    </update>
+
+
+    <select id="selectChildrenIdList" resultType="long">
+        select
+            id
+        from
+            menu
+        where
+            parent_id = #{id} and
+            del_flag = 0
+    </select>
+
+
+    <update id="deleteMenu">
+        update
+            menu
+        set
+            del_flag = 1
+        where
+            id = #{menuId}
+    </update>
+
+
+    <resultMap id="MenuTreeVoResultMap" type="menuTreeVo">
+        <id column="id" property="id" />
+    </resultMap>
+
+
+    <select id="selectMenuForTree" resultMap="MenuTreeVoResultMap">
+        SELECT
+            id,
+            menu_name as label,
+            parent_id
+        FROM
+            menu
+        WHERE
+            status = 0 and
+            del_flag = 0
+        ORDER BY
+            parent_id,
+            order_num
+    </select>
+
+
+    <select id="selectMenuForTreeByRoleId" resultMap="MenuTreeVoResultMap">
+        SELECT
+            m.id,
+            m.parent_id,
+            m.menu_name as label
+        FROM
+            role_menu as rm
+            LEFT JOIN menu as m
+            ON m.id = rm.menu_id
+        WHERE
+            rm.role_id = #{id} and
+            m.status = 0 and
+            m.del_flag = 0
+        order by
+            m.parent_id,
+            m.order_num
+    </select>
+
+
+    <select id="selectDisableMenuCountByMenuId" resultType="integer">
+        select
+            count(*)
+        from
+            menu
+        where
+            id in
+            <foreach collection="menuIds" open="(" close=")" separator="," item="id">
+                #{id}
+            </foreach> and
+            (status = 1 or
+            del_flag = 1)
+    </select>
+
+
+</mapper>

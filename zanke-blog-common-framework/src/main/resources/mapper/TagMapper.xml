@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zanke.mapper.TagMapper">
+
+    <resultMap id="TagResultMap" type="tag">
+        <id property="id" column="id"/>
+    </resultMap>
+
+
+    <select id="selectTagList" resultMap="TagResultMap">
+        select
+            id,
+            `name`,
+            remark
+        from
+            tag
+        where
+            <if test="name != null">
+                `name` like concat('%', #{name}, '%') and
+            </if>
+            <if test="remark != null">
+                remark like concat('%', #{remark}, '%') and
+            </if>
+            del_flag = 0
+    </select>
+
+
+    <insert id="insertInt">
+        insert into
+            tag(`name`, create_by, create_time, remark, update_time, update_by)
+        values
+            (#{name}, #{createBy}, #{createTime}, #{remark}, #{updateTime}, #{updateBy})
+    </insert>
+
+
+    <update id="updateTagById">
+        update
+            tag
+        <set>
+            <if test="name != null">
+                `name` = #{name},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="delFlag != null">
+                del_flag = #{delFlag},
+            </if>
+        </set>
+        where
+            id = #{id}
+    </update>
+
+
+    <select id="selectTagById" resultMap="TagResultMap">
+        select
+            id,
+            `name`,
+            remark
+        from
+            tag
+        where
+            id = #{id}
+    </select>
+
+
+    <select id="selectTagListByArticleId" resultMap="TagResultMap">
+        select
+            t.id,
+            t.`name`,
+            t.remark
+        from
+            tag as t
+            left join article_tag as at
+            on t.id = at.tag_id
+        where
+            at.article_id = #{articleId} and
+            t.del_flag = 0
+    </select>
+    
+    
+    <select id="selectDisableTagCountByIds" resultType="int">
+        select
+            count(*)
+        from
+            tag
+        where
+            id in
+            <foreach collection="tagIds" open="(" separator="," close=")" item="tagId">
+                #{tagId}
+            </foreach> and
+            del_flag = 1;
+    </select>
+
+</mapper>

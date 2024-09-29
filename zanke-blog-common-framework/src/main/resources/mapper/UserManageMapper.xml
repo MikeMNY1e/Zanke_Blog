@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zanke.mapper.UserManageMapper">
+
+    <resultMap id="UserResultMap" type="user">
+        <id column="id" property="id"/>
+    </resultMap>
+
+    <resultMap id="UserVoResultMap" type="userVo">
+        <id column="id" property="id"/>
+    </resultMap>
+
+
+    <select id="selectUserByUserNameAndPhonenumAndStatus" resultMap="UserVoResultMap">
+        select
+            id,
+            username as userName,
+            nick_name,
+            phonenumber,
+            email,
+            sex,
+            status
+        from
+            user
+        where
+            <if test="userName != null">
+                username like concat('%',#{userName},'%') and
+            </if>
+            <if test="phonenumber != null">
+                phonenumber like concat('%',#{phonenumber},'%') and
+            </if>
+            <if test="status != null">
+                status = #{status} and
+            </if>
+            type = 1 and
+            del_flag = 0
+    </select>
+
+
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+        insert into user (username,nick_name,email,password, sex, create_by, create_time, status, phonenumber, type)
+        values (#{username},#{nickName},#{email},#{password},#{sex},#{createBy},#{createTime},#{status},#{phonenumber},#{type})
+    </insert>
+
+
+    <update id="deleteUser">
+        update
+            user
+        set
+            del_flag = 1
+        where
+            id = #{id}
+    </update>
+
+
+    <select id="selectUserById" resultMap="UserResultMap">
+        select
+            *
+        from
+            user
+        where
+            id = #{id}
+    </select>
+
+
+    <update id="updateUser">
+        update
+            user
+        set
+            nick_name = #{nickName},
+            email = #{email},
+            sex = #{sex},
+            phonenumber = #{phonenumber},
+            status = #{status},
+            update_by = #{updateBy},
+            update_time = #{updateTime}
+        where
+            id = #{id}
+    </update>
+
+
+    <update id="updateStatus">
+        update
+            user
+        set
+            status = #{status},
+            update_by = #{updateBy},
+            update_time = #{updateTime}
+        where
+            id = #{id}
+    </update>
+
+
+    <select id="selectUsernameById" resultType="string">
+        select
+            username
+        from
+            user
+        where
+            id = #{id}
+    </select>
+
+</mapper>
