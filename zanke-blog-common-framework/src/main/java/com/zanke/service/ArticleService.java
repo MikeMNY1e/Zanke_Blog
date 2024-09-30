@@ -8,6 +8,7 @@ import com.zanke.pojo.vo.article.ArticleVo;
 import com.zanke.pojo.vo.article.HotArticleVo;
 import com.zanke.pojo.vo.PageVo;
 import com.zanke.util.ResponseResult;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
@@ -50,7 +51,7 @@ public interface ArticleService {
      * @param id
      * @return
      */
-    ResponseResult<Void> updateViewCount(Long id);
+    ResponseResult<Void> updateViewCount(Long id, HttpServletRequest request);
 
 
     /**

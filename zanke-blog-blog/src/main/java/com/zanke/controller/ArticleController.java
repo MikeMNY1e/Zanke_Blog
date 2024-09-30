@@ -8,6 +8,7 @@ import com.zanke.pojo.vo.PageVo;
 import com.zanke.service.ArticleService;
 import com.zanke.util.ResponseResult;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -69,7 +70,7 @@ public class ArticleController {
      */
     @PutMapping("/updateViewCount/{id}")
     @UrlLogBusiness("更新文章浏览量")
-    public ResponseResult<Void> updateViewCount(@PathVariable("id") Long id) {
-        return articleService.updateViewCount(id);
+    public ResponseResult<Void> updateViewCount(@PathVariable("id") Long id, HttpServletRequest request) {
+        return articleService.updateViewCount(id, request);
     }
 }

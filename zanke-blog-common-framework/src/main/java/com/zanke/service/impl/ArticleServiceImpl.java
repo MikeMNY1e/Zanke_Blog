@@ -7,7 +7,6 @@ import com.zanke.mapper.*;
 import com.zanke.pojo.dto.article.AddArticleDto;
 import com.zanke.pojo.dto.article.ArticleListDto;
 import com.zanke.pojo.entity.Article;
-import com.zanke.pojo.entity.Comment;
 import com.zanke.pojo.entity.Tag;
 import com.zanke.pojo.entity.User;
 import com.zanke.pojo.vo.*;
@@ -19,6 +18,7 @@ import com.zanke.schedule.UpdateViewCountSchedule;
 import com.zanke.service.ArticleService;
 import com.zanke.util.*;
 import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +53,7 @@ public class ArticleServiceImpl implements ArticleService {
     private CommentMapper commentMapper;
 
     @Resource
-    private RedisTemplate<String, Number> redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
     @Resource
     private RedissonClient redisson;
 
@@ -134,7 +133,7 @@ public class ArticleServiceImpl implements ArticleService {
         RLock rLock1 = redisson.getLock(ARTICLE_ZSET_DELETE_LOCK);
 
         List<Article> articleList = Collections.emptyList();
-        Set<Number> articleIdSet = Collections.emptySet();
+        Set<Object> articleIdSet = Collections.emptySet();
 
         try {
             rLock1.lock();
@@ -203,10 +202,10 @@ public class ArticleServiceImpl implements ArticleService {
                             // 写入缓存
 
                             // 写文章id的zset，根据浏览量降序
-                            Map<Number, Double> map = articleList.stream()
+                            Map<Object, Double> map = articleList.stream()
                                     .collect(Collectors.toMap(Article::getId, article -> -1d * article.getViewCount()));
 
-                            Set<ZSetOperations.TypedTuple<Number>> collect = RedisUtil.getSetForZSetBatchAdd(map);
+                            Set<ZSetOperations.TypedTuple<Object>> collect = RedisUtil.getSetForZSetBatchAdd(map);
 
                             if (!collect.isEmpty()) {
                                 // 缓存写文章id的zset，根据浏览量降序
@@ -323,10 +322,29 @@ public class ArticleServiceImpl implements ArticleService {
      * @return
      */
     @Override
-    public ResponseResult<Void> updateViewCount(Long id) {
+    public ResponseResult<Void> updateViewCount(Long id, HttpServletRequest request) {
+
+        // 获取当前登录用户
+        User user =  AuthenticationUtil.getUserFromContextHolder();
+
+        // 使用redis的hyperloglog实现浏览量UV
+        if (user != null) {
+            // 浏览量hll写入用户名
+            redisTemplate.opsForHyperLogLog()
+                    .add(RedisKeyEnum.ARTICLE_VIEWCOUNT_HLL_PREFIX.getKey() + id, user.getUsername());
+        } else {
+            // 没有登录的话浏览量hll写入客户端ip
+            // 获取请求的ip
+            redisTemplate.opsForHyperLogLog()
+                    .add(RedisKeyEnum.ARTICLE_VIEWCOUNT_HLL_PREFIX.getKey() + id, request.getRemoteHost());
+        }
+
+        // 获取浏览量
+        Long nowViewCount = redisTemplate.opsForHyperLogLog()
+                .size(RedisKeyEnum.ARTICLE_VIEWCOUNT_HLL_PREFIX.getKey() + id);
 
         Article article = getArticleDetailByIdFromCache(id);
-        article.setViewCount(article.getViewCount() + 1);
+        article.setViewCount(nowViewCount);
 
         RLock rLock = redisson.getLock(ARTICLE_ZSET_DELETE_LOCK);
         try {

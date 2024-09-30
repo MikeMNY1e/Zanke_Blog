@@ -35,12 +35,21 @@ export function getArticle(articleId) {
 }
 
 export function updateViewCount(articleId) {
-    return request({
-        url: '/article/updateViewCount/' + articleId,
-        headers: {
-          isToken: false
-        },
-        method: 'put'
-    })
-    
+
+  const token = localStorage.getItem('token');
+  const headers = {...request.defaults.headers}
+
+  if (token) {
+    headers.token = token;
+  }
+
+  return request({
+    url: '/article/updateViewCount/' + articleId,
+    headers: {
+      headers,
+      // isToken: false
+    },
+    method: 'put'
+  })
+
 }

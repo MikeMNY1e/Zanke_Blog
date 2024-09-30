@@ -22,7 +22,8 @@ public enum RedisKeyEnum {
     NICKNAME_SET_KEY("nickNameSet"),
     LOGINUSER_USERNAME_HASH_KEY("loginUserUsernameHash"),
     LOGINUSER_USERNAME_FIELD_PREFIX("username:"),
-    LINK_SET_KEY("linkZSet");
+    LINK_SET_KEY("linkZSet"),
+    ARTICLE_VIEWCOUNT_HLL_PREFIX("articleViewCountHll:aid");
 
     private String key;
     RedisKeyEnum (String key) {
