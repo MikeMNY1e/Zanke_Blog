@@ -18,8 +18,12 @@ public class AuthenticationUtil {
      * @return
      */
     public static User getUserFromContextHolder() {
-        LoginUser loginUser = (LoginUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return loginUser.getUser();
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof String) {
+            return null;
+        } else {
+            return ((LoginUser) principal).getUser();
+        }
     }
 
 
