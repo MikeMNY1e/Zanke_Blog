@@ -667,6 +667,9 @@ public class ArticleServiceImpl implements ArticleService {
                 redisTemplate.delete(RedisKeyEnum.ARTICLE_ROOT_COMMENT_ZSET_KEY_PREFIX.getKey() + id);
                 redisTemplate.delete(RedisKeyEnum.ARTICLE_CHILD_COMMENT_ZSET_KEY_PREFIX.getKey() + id);
 
+                // 删除文章浏览量HyperLogLog
+                redisTemplate.delete(RedisKeyEnum.ARTICLE_VIEWCOUNT_HLL_PREFIX.getKey() + id);
+
                 // 删除分类缓存
                 redisTemplate.delete(RedisKeyEnum.CATEGORY_ZSET_KEY.getKey());
                 return null;
